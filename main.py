@@ -6,7 +6,7 @@ import requests
 import threading
 from tkcalendar import DateEntry
 from dataclasses import dataclass, field
-from tkinter import END, Tk, LabelFrame, Label, Button
+from tkinter import END, Entry, Tk, LabelFrame, Label, Button
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
 
@@ -34,10 +34,10 @@ class Gui(Tk):
 
         self.date_frame = LabelFrame(self, text="Select dates")
         self.date_frame.pack()
-        self.day_start = DateEntry(self.date_frame, selectmode="day")
-        self.day_start.pack()
-        self.day_end = DateEntry(self.date_frame, selectmode="day")
-        self.day_end.pack()
+        self.date_selector = DateEntry(self.date_frame, selectmode="day")
+        self.date_selector.pack()
+        self.days_entry = Entry(self.date_frame)
+        self.days_entry.pack()
 
         self.calorie_frame = LabelFrame(self, text="Calories")
         self.calorie_frame.pack()
@@ -51,23 +51,18 @@ class Gui(Tk):
         self.scrape_button.pack()
 
     def scrape(self):
-        self.scrape_button["state"] = "disabled"
-        for day in range(DAYS_TO_SCRAPE, 0, -1):
-            date = datetime.today() - timedelta(days=day)
-            formatted_date = date.strftime("%Y-%m-%d")
-
+        selected_date = self.date_selector.get_date()
+        days = int(self.days_entry.get())
+        for day in range(days):
+            date_increment = selected_date + timedelta(days=day)
             page = requests.get(
-                f"https://www.myfitnesspal.com/food/diary/Switesir?date={formatted_date}"
+                f"https://www.myfitnesspal.com/food/diary/Switesir?date={date_increment}"
             )
             soup = BeautifulSoup(page.content, "html.parser")
             calories = soup.find("tr", class_="remaining").contents[3].get_text()
 
             format_calories = int(calories.replace(",", ""))
-            calories_list.append(format_calories)
-            self.text_box["text"] += f"\n{format_calories}"
-
-        print(calories_list)
-        self.scrape_button["state"] = "normal"
+            print(format_calories)
 
 
 if __name__ == "__main__":
