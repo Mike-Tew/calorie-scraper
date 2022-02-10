@@ -4,6 +4,7 @@
 
 import requests
 import threading
+from dataclasses import dataclass, field
 from tkinter import END, Tk, LabelFrame, Label, Button
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
@@ -12,11 +13,25 @@ from datetime import datetime, timedelta
 DAYS_TO_SCRAPE = 5
 calories_list = []
 
+
+@dataclass(order=True)
+class CalorieData:
+    sort_index: int = field(init=False, repr=False)
+    date_delta: int
+    date_string: str
+    calories: int = 0
+
+    def __post_init__(self):
+        self.sort_index = self.date_delta
+
+
 class Gui(Tk):
     def __init__(self):
         super().__init__()
         self.title("Calorie Scraper")
         self.geometry("200x300+1000+300")
+
+        self.cal
 
         self.calorie_frame = LabelFrame(self, text="Calories")
         self.calorie_frame.pack()
