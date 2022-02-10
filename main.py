@@ -4,6 +4,7 @@
 
 import requests
 import threading
+from tkcalendar import DateEntry
 from dataclasses import dataclass, field
 from tkinter import END, Tk, LabelFrame, Label, Button
 from bs4 import BeautifulSoup
@@ -31,7 +32,12 @@ class Gui(Tk):
         self.title("Calorie Scraper")
         self.geometry("200x300+1000+300")
 
-        self.cal
+        self.date_frame = LabelFrame(self, text="Select dates")
+        self.date_frame.pack()
+        self.day_start = DateEntry(self.date_frame, selectmode="day")
+        self.day_start.pack()
+        self.day_end = DateEntry(self.date_frame, selectmode="day")
+        self.day_end.pack()
 
         self.calorie_frame = LabelFrame(self, text="Calories")
         self.calorie_frame.pack()
