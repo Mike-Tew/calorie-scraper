@@ -1,5 +1,4 @@
 # TODO
-# Create Tkinter GUI
 # Scrape calorie data
 # Calculate data
 
@@ -13,15 +12,11 @@ from datetime import datetime, timedelta
 DAYS_TO_SCRAPE = 5
 calories_list = []
 
-
-# prev_list = [500, 700, 1001, 1050, 875]
-
-
 class Gui(Tk):
     def __init__(self):
         super().__init__()
         self.title("Calorie Scraper")
-        self.geometry("+1000+300")
+        self.geometry("200x300+1000+300")
 
         self.calorie_frame = LabelFrame(self, text="Calories")
         self.calorie_frame.pack()
@@ -30,12 +25,12 @@ class Gui(Tk):
         self.scrape_button = Button(
             self.calorie_frame,
             text="Scrape",
-            command=threading.Thread(target=self.scrape).start
+            command=lambda: threading.Thread(target=self.scrape).start(),
         )
         self.scrape_button.pack()
 
     def scrape(self):
-        self.text_box["text"] = "Calories"
+        self.scrape_button["state"] = "disabled"
         for day in range(DAYS_TO_SCRAPE, 0, -1):
             date = datetime.today() - timedelta(days=day)
             formatted_date = date.strftime("%Y-%m-%d")
@@ -48,9 +43,10 @@ class Gui(Tk):
 
             format_calories = int(calories.replace(",", ""))
             calories_list.append(format_calories)
-            print(format_calories)
+            self.text_box["text"] += f"\n{format_calories}"
 
         print(calories_list)
+        self.scrape_button["state"] = "normal"
 
 
 if __name__ == "__main__":
