@@ -11,24 +11,20 @@ from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
 
 
-DAYS_TO_SCRAPE = 5
-calories_list = []
-
-
 @dataclass(order=True)
 class CalorieData:
     sort_index: int = field(init=False, repr=False)
-    date_delta: int
-    date_string: str
+    date_object: datetime
     calories: int = 0
 
     def __post_init__(self):
-        self.sort_index = self.date_delta
+        self.sort_index = self.date_object
 
 
 class Gui(Tk):
     def __init__(self):
         super().__init__()
+        self.calorie_data_list = []
         self.title("Calorie Scraper")
         self.geometry("200x300+1000+300")
 
@@ -52,17 +48,20 @@ class Gui(Tk):
 
     def scrape(self):
         selected_date = self.date_selector.get_date()
-        days = int(self.days_entry.get())
-        for day in range(days):
+        num_days = int(self.days_entry.get())
+        for day in range(num_days):
             date_increment = selected_date + timedelta(days=day)
             page = requests.get(
                 f"https://www.myfitnesspal.com/food/diary/Switesir?date={date_increment}"
             )
             soup = BeautifulSoup(page.content, "html.parser")
             calories = soup.find("tr", class_="remaining").contents[3].get_text()
-
             format_calories = int(calories.replace(",", ""))
+
+            self.calorie_data_list.append(CalorieData(date_increment, format_calories))
             print(format_calories)
+
+        self.calorie_data_list.sort()
 
 
 if __name__ == "__main__":
