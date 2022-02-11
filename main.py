@@ -6,7 +6,7 @@
 import threading
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from tkinter import END, Entry, Tk, LabelFrame, Label, Button
+from tkinter import END, Entry, Frame, Tk, LabelFrame, Label, Button
 from tkinter import ttk
 import requests
 from bs4 import BeautifulSoup
@@ -37,16 +37,16 @@ class Gui(Tk):
         self.days_entry = Entry(self.date_frame)
         self.days_entry.pack()
 
-        self.calorie_frame = LabelFrame(self, text="Calories")
-        self.calorie_frame.pack()
-        self.scrape_button = Button(
-            self.calorie_frame,
+        self.scrape_button = ttk.Button(
+            self,
             text="Scrape",
             command=lambda: threading.Thread(target=self.scrape).start(),
         )
         self.scrape_button.pack()
+        self.calorie_frame = LabelFrame(self)
 
     def scrape(self):
+        self.calorie_data_list = []
         selected_date = self.date_selector.get_date()
         num_days = int(self.days_entry.get())
         for day in range(num_days):
@@ -63,21 +63,40 @@ class Gui(Tk):
 
         self.calorie_data_list.sort()
 
+        self.calorie_frame.destroy()
+        self.calorie_frame = LabelFrame(self, text="Calories")
+        self.calorie_frame.pack()
+        self.display_totals(self.calorie_data_list)
         for calorie_data in self.calorie_data_list:
-            self.create_display_label(calorie_data)
+            self.display_calories(calorie_data)
 
-    def create_display_label(self, calorie_data):
-        calorie_frame = ttk.Frame(self.calorie_frame)
+    def display_totals(self, calorie_data_list):
+        total_frame = Frame(self.calorie_frame)
+        total_frame.pack()
+        ttk.Label(total_frame, text="Total: ").pack(side="left")
+        calorie_total = sum([data.calories for data in calorie_data_list])
+        ttk.Label(
+            total_frame, text=calorie_total, foreground=self.get_color(calorie_total)
+        ).pack(side="right")
+        # pass
+
+    def display_calories(self, calorie_data):
+        calorie_frame = Frame(self.calorie_frame)
         calorie_frame.pack()
         date_text = calorie_data.date_object.strftime("%b %d:")
         date_label = ttk.Label(calorie_frame, text=date_text)
         date_label.pack(side="left")
-        text_color = "green"
-        if calorie_data.calories < 0: text_color = "red"
+
+        calories = calorie_data.calories
         calorie_label = ttk.Label(
-            calorie_frame, text=calorie_data.calories, foreground=text_color
+            calorie_frame,
+            text=calories,
+            foreground=self.get_color(calories),
         )
         calorie_label.pack(side="right")
+
+    def get_color(self, num):
+        return "red" if num < 0 else "green"
 
 
 if __name__ == "__main__":
