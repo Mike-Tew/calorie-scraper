@@ -39,8 +39,6 @@ class Gui(Tk):
 
         self.calorie_frame = LabelFrame(self, text="Calories")
         self.calorie_frame.pack()
-        self.text_box = Label(self.calorie_frame)
-        self.text_box.pack()
         self.scrape_button = Button(
             self.calorie_frame,
             text="Scrape",
@@ -64,6 +62,22 @@ class Gui(Tk):
             print(format_calories)
 
         self.calorie_data_list.sort()
+
+        for calorie_data in self.calorie_data_list:
+            self.create_display_label(calorie_data)
+
+    def create_display_label(self, calorie_data):
+        calorie_frame = ttk.Frame(self.calorie_frame)
+        calorie_frame.pack()
+        date_text = calorie_data.date_object.strftime("%b %d:")
+        date_label = ttk.Label(calorie_frame, text=date_text)
+        date_label.pack(side="left")
+        text_color = "green"
+        if calorie_data.calories < 0: text_color = "red"
+        calorie_label = ttk.Label(
+            calorie_frame, text=calorie_data.calories, foreground=text_color
+        )
+        calorie_label.pack(side="right")
 
 
 if __name__ == "__main__":
