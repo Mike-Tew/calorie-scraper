@@ -1,14 +1,16 @@
 # TODO
-# Scrape calorie data
 # Calculate data
+# Validate and add default to input
+# Display data in the GUI
 
-import requests
 import threading
-from tkcalendar import DateEntry
 from dataclasses import dataclass, field
-from tkinter import END, Entry, Tk, LabelFrame, Label, Button
-from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
+from tkinter import END, Entry, Tk, LabelFrame, Label, Button
+from tkinter import ttk
+import requests
+from bs4 import BeautifulSoup
+from tkcalendar import DateEntry
 
 
 @dataclass(order=True)
