@@ -13,7 +13,7 @@ from tkcalendar import DateEntry
 
 @dataclass(order=True)
 class CalorieData:
-    sort_index: int = field(init=False, repr=False)
+    sort_index: int = field(init=False)
     date_object: datetime
     calories: int = 0
 
@@ -26,7 +26,7 @@ class Gui(tk.Tk):
         super().__init__()
         self.calorie_data_list = []
         self.title("Calorie Scraper")
-        self.geometry("200x350+1000+300")
+        self.geometry("200x350+800+300")
 
         self.date_frame = tk.LabelFrame(self, text="Select dates")
         self.date_frame.pack(ipadx=10, ipady=10)
