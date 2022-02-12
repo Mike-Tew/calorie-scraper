@@ -74,11 +74,20 @@ class Gui(Tk):
         total_frame = Frame(self.calorie_frame)
         total_frame.pack()
         ttk.Label(total_frame, text="Total: ").pack(side="left")
-        calorie_total = sum([data.calories for data in calorie_data_list])
+        calorie_list = [data.calories for data in calorie_data_list]
         ttk.Label(
-            total_frame, text=calorie_total, foreground=self.get_color(calorie_total)
+            total_frame,
+            text=sum(calorie_list),
+            foreground=self.get_color(sum(calorie_list)),
         ).pack(side="right")
-        # pass
+
+        average_frame = Frame(self.calorie_frame)
+        average_frame.pack()
+        average = sum(calorie_list) // len(calorie_list)
+        ttk.Label(average_frame, text="Average: ").pack(side="left")
+        ttk.Label(average_frame, text=average, foreground=self.get_color(average)).pack(
+            side="right"
+        )
 
     def display_calories(self, calorie_data):
         calorie_frame = Frame(self.calorie_frame)
