@@ -4,7 +4,7 @@
 import threading
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from tkinter import END, Entry, Frame, Tk, LabelFrame
+import tkinter as tk
 from tkinter import ttk
 import requests
 from bs4 import BeautifulSoup
@@ -21,18 +21,18 @@ class CalorieData:
         self.sort_index = self.date_object
 
 
-class Gui(Tk):
+class Gui(tk.Tk):
     def __init__(self):
         super().__init__()
         self.calorie_data_list = []
         self.title("Calorie Scraper")
         self.geometry("200x350+1000+300")
 
-        self.date_frame = LabelFrame(self, text="Select dates")
+        self.date_frame = tk.LabelFrame(self, text="Select dates")
         self.date_frame.pack(ipadx=10, ipady=10)
         self.date_selector = DateEntry(self.date_frame, selectmode="day")
         self.date_selector.pack(pady=10)
-        self.days_entry = Entry(self.date_frame)
+        self.days_entry = tk.Entry(self.date_frame)
         self.days_entry.pack()
 
         self.scrape_button = ttk.Button(
@@ -41,7 +41,7 @@ class Gui(Tk):
             command=lambda: threading.Thread(target=self.scrape).start(),
         )
         self.scrape_button.pack(pady=[5, 15])
-        self.calorie_frame = LabelFrame(self)
+        self.calorie_frame = tk.LabelFrame(self)
 
     def scrape(self):
         self.calorie_data_list = []
@@ -57,18 +57,17 @@ class Gui(Tk):
             format_calories = int(calories.replace(",", ""))
 
             self.calorie_data_list.append(CalorieData(date_increment, format_calories))
-            print(format_calories)
         self.calorie_data_list.sort()
 
         self.calorie_frame.destroy()
-        self.calorie_frame = LabelFrame(self, text="Result")
+        self.calorie_frame = tk.LabelFrame(self, text="Result")
         self.calorie_frame.pack(ipadx=10, ipady=10)
         self.display_totals(self.calorie_data_list)
         for calorie_data in self.calorie_data_list:
             self.display_calories(calorie_data)
 
     def display_totals(self, calorie_data_list):
-        total_frame = Frame(self.calorie_frame)
+        total_frame = tk.Frame(self.calorie_frame)
         total_frame.pack()
         ttk.Label(total_frame, text="Total:", width=10, font="Helvetica 14 bold").pack(
             side="left"
@@ -83,7 +82,7 @@ class Gui(Tk):
             foreground=self.get_color(calorie_total),
         ).pack(side="right", anchor="e")
 
-        average_frame = Frame(self.calorie_frame)
+        average_frame = tk.Frame(self.calorie_frame)
         average_frame.pack()
         average = calorie_total // len(calorie_list)
         ttk.Label(
@@ -100,7 +99,7 @@ class Gui(Tk):
         sep.pack(fill="x", pady=10)
 
     def display_calories(self, calorie_data):
-        calorie_frame = Frame(self.calorie_frame)
+        calorie_frame = tk.Frame(self.calorie_frame)
         calorie_frame.pack()
         date_text = calorie_data.date_object.strftime("%b %d - ")
         date_label = ttk.Label(calorie_frame, text=date_text, font="Helvetica 10", width=7)
