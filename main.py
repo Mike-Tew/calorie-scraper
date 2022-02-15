@@ -1,9 +1,6 @@
-# TODO
-# Validate and add default to input
-
-import threading
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
+import threading
 import tkinter as tk
 from tkinter import ttk
 
@@ -11,7 +8,6 @@ import asyncio
 from bs4 import BeautifulSoup
 import httpx
 from tkcalendar import DateEntry
-
 
 
 @dataclass(order=True)
@@ -28,33 +24,37 @@ class Gui(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("Calorie Scraper")
-        self.geometry("200x350+800+300")
+        self.geometry("200x500+800+300")
 
-        self.date_frame = tk.LabelFrame(self, text="Select dates")
-        self.date_frame.pack(ipadx=10, ipady=10)
+        self.date_frame = tk.LabelFrame(self, text="Select Dates")
+        self.date_frame.pack(ipadx=10)
         self.date_selector = DateEntry(self.date_frame, selectmode="day")
         self.date_selector.pack(pady=10)
-        self.days_entry = tk.Entry(self.date_frame)
-        self.days_entry.pack()
+        self.day_dropdown = ttk.Combobox(self.date_frame, width=5)
+        self.day_dropdown.pack()
+        self.day_dropdown["values"] = list(range(1, 15))
+        self.day_dropdown.current(6)
 
         self.scrape_button = ttk.Button(
-            self,
+            self.date_frame,
             text="Scrape",
             command=lambda: threading.Thread(target=self.run).start(),
         )
-        self.scrape_button.pack(pady=[5, 15])
+        self.scrape_button.pack(pady=10)
         self.calorie_frame = tk.LabelFrame(self)
 
-    def parse_calories(self, html):
-        soup = BeautifulSoup(html.content, "html.parser")
-        calories = soup.find("tr", class_="remaining").contents[3].get_text()
-        format_calories = int(calories.replace(",", ""))
-        return format_calories
+    def run(self):
+        self.calorie_frame.destroy()
+        selected_date = self.date_selector.get_date()
+        self.calorie_frame = tk.LabelFrame(self, text="Results")
+        self.calorie_frame.pack(ipadx=10, ipady=10)
+        num_days = int(self.day_dropdown.get())
+        dates = [selected_date + timedelta(days=day) for day in range(num_days)]
+        asyncio.run(self.scrape_urls(dates))
 
-    async def fetch_html(self, client, date):
-        url = f"https://www.myfitnesspal.com/food/diary/Switesir?date={date}"
-        html = await client.get(url, follow_redirects=True)
-        return CalorieData(date, self.parse_calories(html))
+        self.display_totals()
+        for calorie_data in self.data_list:
+            self.display_calories(calorie_data)
 
     async def scrape_urls(self, dates):
         async with httpx.AsyncClient() as client:
@@ -63,18 +63,16 @@ class Gui(tk.Tk):
             )
         self.data_list.sort()
 
-    def run(self):
-        selected_date = self.date_selector.get_date()
-        num_days = int(self.days_entry.get())
-        dates = [selected_date + timedelta(days=day) for day in range(num_days)]
-        asyncio.run(self.scrape_urls(dates))
+    async def fetch_html(self, client, date):
+        url = f"https://www.myfitnesspal.com/food/diary/Switesir?date={date}"
+        html = await client.get(url, follow_redirects=True)
+        return CalorieData(date, self.parse_calories(html))
 
-        self.calorie_frame.destroy()
-        self.calorie_frame = tk.LabelFrame(self, text="Result")
-        self.calorie_frame.pack(ipadx=10, ipady=10)
-        self.display_totals()
-        for calorie_data in self.data_list:
-            self.display_calories(calorie_data)
+    def parse_calories(self, html):
+        soup = BeautifulSoup(html.content, "html.parser")
+        calories = soup.find("tr", class_="remaining").contents[3].get_text()
+        format_calories = int(calories.replace(",", ""))
+        return format_calories
 
     def display_totals(self):
         total_frame = tk.Frame(self.calorie_frame)
