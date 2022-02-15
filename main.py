@@ -1,7 +1,3 @@
-# TODO
-# Convert to executable
-# Update README with screenshot
-
 import asyncio
 import httpx
 import threading
