@@ -1,3 +1,8 @@
+# TODO
+# Create username entry
+# Convert to executable
+# Validate inputs
+
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 import threading
@@ -24,20 +29,37 @@ class Gui(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("Calorie Scraper")
-        self.geometry("200x500+800+300")
+        self.geometry("300x500+800+300")
 
         self.date_frame = tk.LabelFrame(self, text="Select Dates")
         self.date_frame.pack(ipadx=10)
+
+        self.username_label = ttk.Label(
+            self.date_frame, text="Username", font="Helvetica 10 bold"
+        )
+        self.username_label.grid(pady=10, row=0, column=0)
+        self.username_entry = ttk.Entry(self.date_frame)
+        self.username_entry.grid(row=0, column=1)
+
+        self.date_selector_label = ttk.Label(
+            self.date_frame, text="Start Date", font="Helvetica 10 bold"
+        )
+        self.date_selector_label.grid(row=1, column=0)
         self.date_selector = DateEntry(self.date_frame, selectmode="day")
-        self.date_selector.pack(pady=10)
+        self.date_selector.grid(row=1, column=1)
+
+        self.day_dropdown_label = ttk.Label(
+            self.date_frame, text="Number Of Days", font="Helvetica 10 bold"
+        )
+        self.day_dropdown_label.grid(padx=10, pady=10, row=2, column=0)
         self.day_dropdown = ttk.Combobox(self.date_frame, width=5)
-        self.day_dropdown.pack()
+        self.day_dropdown.grid(row=2, column=1)
         self.day_dropdown["values"] = list(range(1, 15))
         self.day_dropdown.current(6)
 
         self.scrape_button = ttk.Button(
-            self.date_frame,
-            text="Scrape",
+            self,
+            text="Calculate",
             command=lambda: threading.Thread(target=self.run).start(),
         )
         self.scrape_button.pack(pady=10)
@@ -64,7 +86,8 @@ class Gui(tk.Tk):
         self.data_list.sort()
 
     async def fetch_html(self, client, date):
-        url = f"https://www.myfitnesspal.com/food/diary/Switesir?date={date}"
+        username = self.username_entry.get()
+        url = f"https://www.myfitnesspal.com/food/diary/{username}?date={date}"
         html = await client.get(url, follow_redirects=True)
         return CalorieData(date, self.parse_calories(html))
 
