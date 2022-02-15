@@ -1,7 +1,5 @@
 # TODO
-# Create username entry
 # Convert to executable
-# Validate inputs
 
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
@@ -45,7 +43,15 @@ class Gui(tk.Tk):
             self.date_frame, text="Start Date", font="Helvetica 10 bold"
         )
         self.date_selector_label.grid(row=1, column=0)
-        self.date_selector = DateEntry(self.date_frame, selectmode="day")
+        self.date_selector = DateEntry(
+            self.date_frame,
+            width=7,
+            font="Ariel 10",
+            selectmode="day",
+            showweeknumbers=False,
+            background="black",
+            borderwidth=5,
+        )
         self.date_selector.grid(row=1, column=1)
 
         self.day_dropdown_label = ttk.Label(
