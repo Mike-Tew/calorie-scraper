@@ -6,12 +6,12 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 import tkinter as tk
 from tkinter import ttk
-import requests
+
+import asyncio
 from bs4 import BeautifulSoup
+import httpx
 from tkcalendar import DateEntry
 
-import httpx
-import asyncio
 
 
 @dataclass(order=True)
@@ -40,27 +40,30 @@ class Gui(tk.Tk):
         self.scrape_button = ttk.Button(
             self,
             text="Scrape",
-            command=lambda: threading.Thread(target=self.scrape).start(),
+            command=lambda: threading.Thread(target=self.run).start(),
         )
         self.scrape_button.pack(pady=[5, 15])
         self.calorie_frame = tk.LabelFrame(self)
 
-    async def fetch_and_parse(self, client, date):
-        url = f"https://www.myfitnesspal.com/food/diary/Switesir?date={date}"
-        html = await client.get(url, follow_redirects=True)
+    def parse_calories(self, html):
         soup = BeautifulSoup(html.content, "html.parser")
         calories = soup.find("tr", class_="remaining").contents[3].get_text()
         format_calories = int(calories.replace(",", ""))
-        return CalorieData(date, format_calories)
+        return format_calories
+
+    async def fetch_html(self, client, date):
+        url = f"https://www.myfitnesspal.com/food/diary/Switesir?date={date}"
+        html = await client.get(url, follow_redirects=True)
+        return CalorieData(date, self.parse_calories(html))
 
     async def scrape_urls(self, dates):
         async with httpx.AsyncClient() as client:
             self.data_list = await asyncio.gather(
-                *(self.fetch_and_parse(client, date) for date in dates)
+                *(self.fetch_html(client, date) for date in dates)
             )
         self.data_list.sort()
 
-    def scrape(self):
+    def run(self):
         selected_date = self.date_selector.get_date()
         num_days = int(self.days_entry.get())
         dates = [selected_date + timedelta(days=day) for day in range(num_days)]
