@@ -1,16 +1,16 @@
 # TODO
 # Convert to executable
-
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta
-import threading
-import tkinter as tk
-from tkinter import ttk
+# Update README with screenshot
 
 import asyncio
-from bs4 import BeautifulSoup
 import httpx
+import threading
+import tkinter as tk
+from bs4 import BeautifulSoup
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta
 from tkcalendar import DateEntry
+from tkinter import ttk
 
 
 @dataclass(order=True)
@@ -26,7 +26,8 @@ class CalorieData:
 class Gui(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.title("Calorie Scraper")
+        self.iconbitmap("favicon.ico")
+        self.title("MyFitnessPal Calorie Scraper")
         self.geometry("300x500+800+300")
 
         self.date_frame = tk.LabelFrame(self, text="Select Dates")
