@@ -10,10 +10,13 @@ import requests
 from bs4 import BeautifulSoup
 from tkcalendar import DateEntry
 
+import httpx
+import asyncio
+
 
 @dataclass(order=True)
 class CalorieData:
-    sort_index: int = field(init=False)
+    sort_index: int = field(init=False, repr=False)
     date_object: datetime
     calories: int = 0
 
@@ -24,7 +27,6 @@ class CalorieData:
 class Gui(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.calorie_data_list = []
         self.title("Calorie Scraper")
         self.geometry("200x350+800+300")
 
@@ -43,36 +45,41 @@ class Gui(tk.Tk):
         self.scrape_button.pack(pady=[5, 15])
         self.calorie_frame = tk.LabelFrame(self)
 
+    async def fetch_and_parse(self, client, date):
+        url = f"https://www.myfitnesspal.com/food/diary/Switesir?date={date}"
+        html = await client.get(url, follow_redirects=True)
+        soup = BeautifulSoup(html.content, "html.parser")
+        calories = soup.find("tr", class_="remaining").contents[3].get_text()
+        format_calories = int(calories.replace(",", ""))
+        return CalorieData(date, format_calories)
+
+    async def scrape_urls(self, dates):
+        async with httpx.AsyncClient() as client:
+            self.data_list = await asyncio.gather(
+                *(self.fetch_and_parse(client, date) for date in dates)
+            )
+        self.data_list.sort()
+
     def scrape(self):
-        self.calorie_data_list = []
         selected_date = self.date_selector.get_date()
         num_days = int(self.days_entry.get())
-        for day in range(num_days):
-            date_increment = selected_date + timedelta(days=day)
-            page = requests.get(
-                f"https://www.myfitnesspal.com/food/diary/Switesir?date={date_increment}"
-            )
-            soup = BeautifulSoup(page.content, "html.parser")
-            calories = soup.find("tr", class_="remaining").contents[3].get_text()
-            format_calories = int(calories.replace(",", ""))
-
-            self.calorie_data_list.append(CalorieData(date_increment, format_calories))
-        self.calorie_data_list.sort()
+        dates = [selected_date + timedelta(days=day) for day in range(num_days)]
+        asyncio.run(self.scrape_urls(dates))
 
         self.calorie_frame.destroy()
         self.calorie_frame = tk.LabelFrame(self, text="Result")
         self.calorie_frame.pack(ipadx=10, ipady=10)
-        self.display_totals(self.calorie_data_list)
-        for calorie_data in self.calorie_data_list:
+        self.display_totals()
+        for calorie_data in self.data_list:
             self.display_calories(calorie_data)
 
-    def display_totals(self, calorie_data_list):
+    def display_totals(self):
         total_frame = tk.Frame(self.calorie_frame)
         total_frame.pack()
         ttk.Label(total_frame, text="Total:", width=10, font="Helvetica 14 bold").pack(
             side="left"
         )
-        calorie_list = [data.calories for data in calorie_data_list]
+        calorie_list = [data.calories for data in self.data_list]
         calorie_total = sum(calorie_list)
         ttk.Label(
             total_frame,
@@ -102,12 +109,18 @@ class Gui(tk.Tk):
         calorie_frame = tk.Frame(self.calorie_frame)
         calorie_frame.pack()
         date_text = calorie_data.date_object.strftime("%b %d - ")
-        date_label = ttk.Label(calorie_frame, text=date_text, font="Helvetica 10", width=7)
+        date_label = ttk.Label(
+            calorie_frame, text=date_text, font="Helvetica 10", width=7
+        )
         date_label.pack(side="left", anchor="e")
 
         calories = calorie_data.calories
         calorie_label = ttk.Label(
-            calorie_frame, text=calories, font="Helvetica 10", foreground=self.get_color(calories), width=5
+            calorie_frame,
+            text=calories,
+            font="Helvetica 10",
+            foreground=self.get_color(calories),
+            width=5,
         )
         calorie_label.pack(side="right", anchor="e")
 
