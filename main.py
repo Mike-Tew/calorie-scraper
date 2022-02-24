@@ -22,7 +22,6 @@ class CalorieData:
 class Gui(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.iconbitmap("favicon.ico")
         self.title("MyFitnessPal Calorie Scraper")
         self.geometry("300x500+800+300")
 
@@ -49,6 +48,7 @@ class Gui(tk.Tk):
             background="black",
             borderwidth=5,
         )
+        self.date_selector.set_date(datetime.now() - timedelta(days=7))
         self.date_selector.grid(row=1, column=1)
 
         self.day_dropdown_label = ttk.Label(
@@ -103,7 +103,7 @@ class Gui(tk.Tk):
     def display_totals(self):
         total_frame = tk.Frame(self.calorie_frame)
         total_frame.pack()
-        ttk.Label(total_frame, text="Total:", width=10, font="Helvetica 14 bold").pack(
+        ttk.Label(total_frame, text="Total:", width=8, font="Helvetica 14 bold").pack(
             side="left"
         )
         calorie_list = [data.calories for data in self.data_list]
@@ -112,9 +112,10 @@ class Gui(tk.Tk):
             total_frame,
             text=calorie_total,
             font="Helvetica 14 bold",
-            width=4,
+            width=6,
             foreground=self.get_color(calorie_total),
-        ).pack(side="right", anchor="e")
+            anchor="e"
+        ).pack(side="right")
 
         average_frame = tk.Frame(self.calorie_frame)
         average_frame.pack()
